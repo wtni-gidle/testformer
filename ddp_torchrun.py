@@ -27,12 +27,12 @@ logging.basicConfig(level = logging.INFO if RANK in [-1, 0] else logging.WARN)
 
 SEED = 0
 TIMEOUT = 1200
-BATCH_SIZE = 16
+BATCH_SIZE = 2
 LEARNING_RATE = 1e-4
 EPOCHS = 8
 GRADIENT_ACCUMULATION = 60
 VALIDATE_EVERY = 1
-NUM_BINS  = 7
+NUM_BINS = 7
 
 @record
 def main():
@@ -105,6 +105,9 @@ def main():
                 torch.nn.utils.clip_grad_norm_(model.parameters(), int(1e6))
                 optimizer.step()
                 optimizer.zero_grad()
+
+            if i % 5000 == 0:
+                logging.info(f"current loss: {loss:.4f}")
                 
             train_loss += loss.item()
             train_acc = mlm_accuracy(logits, labels)
@@ -133,6 +136,8 @@ def main():
 
                     test_loss += loss.item()
                     test_acc = mlm_accuracy(logits, labels)
+                    if i % 5000 == 0:
+                        logging.info(f"current loss: {loss:.4f}")
 
                 test_loss = test_loss / len(test_loader)
                 test_acc = 100 * test_acc / len(test_loader)
